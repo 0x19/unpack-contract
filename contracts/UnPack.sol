@@ -22,6 +22,18 @@ contract UnPack is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, ER
     address private presalerAddr; // Address of the presale account
     address private airdropperAddr; // Address of the airdrop account
 
+    // Event declarations
+    event Subscribed(address indexed user, uint256 amount);
+    event Unsubscribed(address indexed user, uint256 refundAmount);
+    event TaxPercentageChanged(uint256 newTaxPercentage);
+
+    struct SubscriberInfo {
+        uint256 subscribedAt;
+        uint256 lastRewardTime;
+        uint256 subscriptionAmount;
+    }
+    mapping(address => SubscriberInfo) private subscribers;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -62,9 +74,42 @@ contract UnPack is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, ER
     }
 
 
+    // Subscribe function with dynamic subscription fee in Ether
+    function subscribe() public payable {
+        require(subscribers[msg.sender].subscribedAt == 0, "Already subscribed");
+        require(msg.value > 0, "Subscription amount must be greater than 0");
+        require(balanceOf(msg.sender) >= msg.value, "Insufficient token balance to subscribe");
+
+        payable(developerAddr).transfer(msg.value);
+        subscribers[msg.sender] = SubscriberInfo(block.timestamp, block.timestamp, msg.value);
+
+        emit Subscribed(msg.sender, msg.value);
+    }
+
+    // Unsubscribe function with refund
+    function unsubscribe() public {
+        require(subscribers[msg.sender].subscribedAt != 0, "Not subscribed");
+
+        uint256 daysSubscribed = (block.timestamp - subscribers[msg.sender].subscribedAt) / 60 / 60 / 24;
+        uint256 refundAmount = calculateRefund(subscribers[msg.sender].subscriptionAmount, daysSubscribed);
+
+        payable(msg.sender).transfer(refundAmount);
+        delete subscribers[msg.sender];
+
+        emit Unsubscribed(msg.sender, refundAmount);
+    }
+
+    // Calculate the refund amount based on the subscription duration
+    function calculateRefund(uint256 subscriptionAmount, uint256 daysSubscribed) private pure returns (uint256) {
+        uint256 refundRatePerDay = subscriptionAmount / 30; // Assuming 30-day month for simplicity
+        uint256 refundAmount = subscriptionAmount - (refundRatePerDay * daysSubscribed);
+        return refundAmount;
+    }
+
     function setTaxPercentage(uint256 _taxPercentage) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_taxPercentage <= 5, "Tax cannot exceed 5%");
         taxPercentage = _taxPercentage;
+        emit TaxPercentageChanged(_taxPercentage);
     }
 
     function pause() public onlyRole(PAUSER_ROLE) {
@@ -75,12 +120,11 @@ contract UnPack is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, ER
         _unpause();
     }
 
-    // The following functions are overrides required by Solidity.
     function _update(address from, address to, uint256 value)
         internal
         override(ERC20Upgradeable, ERC20PausableUpgradeable)
     {
-    // List of initialized addresses
+        // List of initialized addresses
         address[] memory exemptAddresses = new address[](2);
         exemptAddresses[1] = pauserAddr; // Replace with actual pauser address variable
 

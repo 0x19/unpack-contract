@@ -14,8 +14,6 @@ describe("UnPack contract", function () {
     hardhatToken = await upgrades.deployProxy(UnPack, [
       owner.address, pauser.address, developer.address, presaler.address, airdroper.address
     ], { initializer: 'initialize' });
-
-    console.log("UnPack deployed to:", hardhatToken.address);
   });
 
   it("Deployment should correctly allocate tokens to the developer, presaler, staker, and owner", async function () {
@@ -48,25 +46,12 @@ describe("UnPack contract", function () {
 
     await hardhatToken.connect(developer).transfer(owner.address, transferAmount.toString());
 
-    console.log("totalSupply: ", totalSupply.toString());
-    console.log("ownerBalance: ", ownerBalance.toString());
-    console.log("developerBalance: ", developerBalance.toString());
-    console.log("presalerBalance: ", presalerBalance.toString());
-    console.log("airdroperBalance: ", airdroperBalance.toString());
-
     const taxPercentageBigInt = BigInt(3); // 3%
     const expectedTaxBigInt = transferAmount * taxPercentageBigInt / BigInt(100);
 
     const developerBalanceAfter = await hardhatToken.balanceOf(developer.address);
     const ownerBalanceAfter = await hardhatToken.balanceOf(owner.address);
     const airdroperBalanceAfter = await hardhatToken.balanceOf(airdroper.address);
-
-    console.log("Transfer amount: ", transferAmount.toString());
-    console.log("Tax percentage: ", taxPercentageBigInt.toString());
-    console.log("Expected tax: ", expectedTaxBigInt.toString());
-    console.log("Developer balance after transfer: ", developerBalanceAfter.toString());
-    console.log("Owner balance after transfer: ", ownerBalanceAfter.toString());
-    console.log("Airdroper balance after transfer: ", airdroperBalanceAfter.toString());
 
     const expectedDeveloperBalanceBigInt = developerBalance - transferAmount;
     const expectedOwnerBalanceBigInt = ownerBalance + transferAmount - expectedTaxBigInt;
