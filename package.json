@@ -1,0 +1,28 @@
+{
+  "name": "unpack-contract",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unpackdev/unpack-contract.git"
+  },
+  "keywords": [],
+  "author": "(Un)Pack <info@unpack.dev>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/unpackdev/unpack-contract/issues"
+  },
+  "homepage": "https://github.com/unpackdev/unpack-contract#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "@openzeppelin/contracts": "^5.0.0",
+    "@openzeppelin/contracts-upgradeable": "^5.0.0",
+    "@openzeppelin/hardhat-upgrades": "^2.4.0",
+    "ethers": "^6.8.1",
+    "hardhat": "^2.19.0"
+  }
+}
